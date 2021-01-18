@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+    commands:
+      - yum -y update
+      - yum install -y jq
+      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
+      - unzip ./sonar-scanner-cli-3.3.0.1492-linux.zip
+      - export PATH=$PATH:./sonar-scanner-3.3.0.1492-linux/bin/
+  pre_build:
+    commands:
+      - sonar-scanner -Dsonar.organization=staticanalysisjava -Dsonar.projectKey=sonar_java_dev -Dsonar.scanner.force-deprecated-java-version=true -Dsonar.java.binaries=app1-backend/. -Dsonar.sources=app1-backend/src/main/java -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=1e42066fa526b524027c8693a537a9fbf82c71a0
+      - curl https://sonarcloud.io/api/qualitygates/project_status?projectKey=sonar_java_dev> analysis.json
+      - QGSTATUS=`cat analysis.json | jq '.projectStatus.status' | tr -d '"'`
+      - |
+        if [ ${QGSTATUS} = "OK" ]; then
+          echo "Quality Gates Passed";
+        elif [ ${QGSTATUS} = "ERROR" ]; then
+          echo "Quality Gate Failed" && exit 1;
+        fi
+  build:
+    commands:
+      - echo Building Project
+      - echo Finished Building
+
+cache:
+  paths:
+    - "node_modules/**/*"

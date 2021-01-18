@@ -1,0 +1,23 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+    commands:
+      - npm install -g jest
+  pre_build:
+    commands:
+      - cd react-frontend
+      - npm install
+      - npm install --save-dev enzyme enzyme-adapter-react-16 react-test-renderer enzyme-to-json react react-dom react-scripts react-particles-js
+  build:
+    commands:
+      - echo Testing
+      - set CI=true
+      - npm test a
+  post_build:
+    commands:
+      - echo Test completed on `date`
+cache:
+  paths:
+    - './node_modules/**/*'
